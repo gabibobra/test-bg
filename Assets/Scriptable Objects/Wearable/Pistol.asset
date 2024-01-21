@@ -17,3 +17,4 @@ MonoBehaviour:
   sprite: {fileID: 229063438, guid: a0e7f1167efba544bb8d6e3198ae44f9, type: 3}
   headWearable: 0
   handWearable: 1
+  isWearingItem: 0
