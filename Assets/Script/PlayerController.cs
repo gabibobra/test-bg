@@ -8,10 +8,16 @@ public class PlayerController : MonoBehaviour
     public float movementSpeed;
     public Rigidbody2D rb;
     public Animator animator;
-    public int playerCoins = 30;
+    public int playerCoins;
     private Vector2 moveDirection;
     public TMP_Text coinsTxt;
-    private List<ShopItem> playerItems = new List<ShopItem>();
+    public TMP_Text coinsFeedbackTxt;
+    public Inventory playerInventory;
+    public List<Item> playerItems { get; private set; } = new List<Item>();
+    public List<SpriteRenderer> playerWearableSprites = new List<SpriteRenderer>();
+    public Animation coinsFeedbackAnim;
+
+    public enum PlayerWearableSlots { Head, Hand };
     public static PlayerController instance { get; private set; }
     private void Awake()
     {
@@ -19,7 +25,8 @@ public class PlayerController : MonoBehaviour
             Destroy(this);
         else
             instance = this;
-        UpdateCoins(30);
+        UpdateCoins(40);
+        playerInventory.UpdateInventory();
     }
 
     private void Start()
@@ -52,11 +59,53 @@ public class PlayerController : MonoBehaviour
     {
         playerCoins += value;
         coinsTxt.text = playerCoins.ToString();
+        if (value > 0)
+            coinsFeedbackTxt.text = "+ " + Mathf.Abs(value).ToString();
+        else
+            coinsFeedbackTxt.text = "- " + Mathf.Abs(value).ToString();
+        coinsFeedbackAnim.Play();
     }
 
-    public void UpdateItems(ShopItem shopItem)
+    public void UpdateItems(Item item, bool addingItem = true)
     {
-        playerItems.Add(shopItem);
-        UpdateCoins(-shopItem.prize);
+        if (addingItem)
+        {
+            playerItems.Add(item);
+            UpdateCoins(-item.prize);
+
+        }
+        else
+        {
+            if (item.isWearingItem)
+            {
+                if (item.headWearable)
+                {
+                    playerWearableSprites[0].enabled = false;
+                }
+                else if (item.handWearable)
+                {
+                    playerWearableSprites[1].enabled = false;
+                }
+            }
+            playerItems.Remove(item);
+            UpdateCoins(item.prize);
+
+        }
+        playerInventory.UpdateInventory();
     }
+
+    public void WearItem(Item item)
+    {
+        if (item.headWearable)
+        {
+            playerWearableSprites[0].sprite = item.sprite;
+            playerWearableSprites[0].enabled = true;
+        }
+        else if (item.handWearable)
+        {
+            playerWearableSprites[1].sprite = item.sprite;
+            playerWearableSprites[1].enabled = true;
+        }
+    }
+
 }

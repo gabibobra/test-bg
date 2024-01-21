@@ -6,19 +6,24 @@ using TMPro;
 
 public class ShopController : MonoBehaviour
 {
-    public PlayerController player;
-    public ShopItem[] shopItems;
-    private List<ItemButtom> itemButton =  new List<ItemButtom>();
+    public Item[] shopItems;
     public GameObject itemButtonPrefab;
+    public GameObject shopUI;
     public Transform itemsContainer;
 
-    private void Awake()
-    {
-    }
+    private List<ShopItem> itemButtons =  new List<ShopItem>();
+    private bool showingUI;
 
     private void Start()
     {
+        EnableUI(false);
         CreateShopItems();
+    }
+
+    public void EnableUI(bool enabled)
+    {
+        shopUI.SetActive(enabled);
+        showingUI = enabled;
     }
 
     public void CreateShopItems()
@@ -26,21 +31,37 @@ public class ShopController : MonoBehaviour
         for(int i = 0; i < shopItems.Length; i++)
         {
             GameObject newItemButton = Instantiate(itemButtonPrefab, itemsContainer);
-            ItemButtom itemButtonComponent = newItemButton.GetComponent<ItemButtom>();
-            itemButtonComponent.SetItemTexts(shopItems[i]);
-            itemButtonComponent.SetOnClickCallback(UpdateShopItems);
-            itemButton.Add(itemButtonComponent);
+            ShopItem shopItemComponent = newItemButton.GetComponent<ShopItem>();
+            shopItemComponent.SetShopItemTexts(shopItems[i]);
+            shopItemComponent.SetOnClickCallback(UpdateShopItems);
+            itemButtons.Add(shopItemComponent);
         }
         UpdateShopItems();
     }
 
     public void UpdateShopItems()
     {
-        for (int i = 0; i < itemButton.Count; i++)
+        for (int i = 0; i < itemButtons.Count; i++)
         {
-            bool canPurchase = PlayerController.instance.playerCoins > itemButton[i].GetPrize();
-            itemButton[i].SetButtomEnabled(canPurchase);
+            bool canPurchase = PlayerController.instance.playerCoins > itemButtons[i].GetPrize();
+            itemButtons[i].SetButtomEnabled(canPurchase);
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.tag == "Player" && !showingUI)
+        {
+            EnableUI(true);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.tag == "Player" && showingUI)
+        {
+            EnableUI(false);
+        }
+    }
 }
+
